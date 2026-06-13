@@ -1,0 +1,4 @@
+build/
+encryption-daemon
+daemon
+*.enc

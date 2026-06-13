@@ -1,0 +1,35 @@
+// Dev Container for encryption-daemon
+// Stack: C++17 + libsodium (engine) | Go 1.22 (daemon + CLI) | CMake + Make
+{
+  "name": "encryption-daemon",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Layered features — installed on top of the base image
+  "features": {
+    // Installs Go toolchain into /usr/local/go
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.22"
+    },
+    // Ensures a recent git is available
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  // Run once after the container is first created.
+  // Downloads Go module dependencies if go.mod exists.
+  "postCreateCommand": "[ -f go.mod ] && go mod download || true",
+
+  // Extra flags forwarded to `docker run` / `podman run`.
+  // --security-opt label=disable → needed for SELinux on Fedora (allows bind mounts)
+  // Note: NOT using --userns=keep-id here because we run as root inside the container.
+  // In Podman rootless, container root maps to your host user — not actually privileged.
+  "runArgs": [
+    "--security-opt", "label=disable"
+  ],
+
+  // Run as root so Zed's external agents (claude-acp etc.) can spawn correctly.
+  // Workaround for: https://github.com/zed-industries/zed/issues/45165
+  // In rootless Podman, container root = your host UID from the kernel's perspective.
+  "remoteUser": "root"
+}
